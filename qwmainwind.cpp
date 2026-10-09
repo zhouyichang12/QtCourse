@@ -1,4 +1,5 @@
-﻿#include "qwmainwind.h"
+// 【提交1】搭建计算器UI界面，添加显示屏、数字与运算符按钮
+#include "qwmainwind.h"
 #include "ui_qwmainwind.h"
 
 #include    <QFile>
@@ -68,6 +69,12 @@ QWMainWind::QWMainWind(QWidget *parent) :
     iniUI();//手工初始化UI
 
     iniSignalSlots();//信号与槽关联
+    m_inputStr = "0";
+    m_firstNum = "";
+    m_op = "";
+    m_hasDot = false;
+    m_calcFinished = false;
+    updateDisplay();
 }
 
 QWMainWind::~QWMainWind()
