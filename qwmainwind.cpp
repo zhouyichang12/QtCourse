@@ -191,3 +191,28 @@ void QWMainWind::on_txtEdit_selectionChanged()
     ui->actFontBold->setChecked(fmt.font().bold()); //是否粗体
     ui->actFontUnder->setChecked(fmt.fontUnderline()); //是否有下划线
 }
+//数字按钮共用槽函数
+void MainWindow::onDigitClicked()
+{
+    QPushButton *btn = qobject_cast<QPushButton*>(sender());
+    QString num = btn->text();
+
+    if(m_calcFinished)
+    {
+        m_inputStr = num;
+        m_calcFinished = false;
+        m_hasDot = false;
+    }
+    else
+    {
+        if(m_inputStr == "0")
+        {
+            m_inputStr = num;
+        }
+        else
+        {
+            m_inputStr += num;
+        }
+    }
+    updateDisplay();
+}
