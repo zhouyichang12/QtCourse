@@ -284,3 +284,52 @@ void MainWindow::onEqualClicked()
     m_calcFinished = true;
     updateDisplay();
 }
+//小数点
+void MainWindow::onDotClicked()
+{
+    if(m_calcFinished)
+    {
+        m_inputStr = "0";
+        m_hasDot = false;
+        m_calcFinished = false;
+    }
+    if(!m_hasDot)
+    {
+        m_inputStr += ".";
+        m_hasDot = true;
+    }
+    updateDisplay();
+}
+
+//清除全部 AC
+void MainWindow::onClearClicked()
+{
+    m_inputStr = "0";
+    m_firstNum = "";
+    m_op = "";
+    m_hasDot = false;
+    m_calcFinished = false;
+    updateDisplay();
+}
+
+//退格
+void MainWindow::onBackspaceClicked()
+{
+    if(m_calcFinished)
+        return;
+    if(m_inputStr.length() <= 1)
+    {
+        m_inputStr = "0";
+        m_hasDot = false;
+    }
+    else
+    {
+        QChar lastCh = m_inputStr.back();
+        m_inputStr.chop(1);
+        if(lastCh == '.')
+        {
+            m_hasDot = false;
+        }
+    }
+    updateDisplay();
+}
