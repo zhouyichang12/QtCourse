@@ -333,3 +333,8 @@ void MainWindow::onBackspaceClicked()
     }
     updateDisplay();
 }
+//更新显示屏显示
+void MainWindow::updateDisplay()
+{
+    ui->displayLabel->setText(m_inputStr);
+}
