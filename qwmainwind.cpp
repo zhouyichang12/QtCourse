@@ -240,3 +240,47 @@ void MainWindow::onOpClicked()
     }
     updateDisplay();
 }
+//四则运算计算函数，处理除零异常
+double MainWindow::calculate(QString n1, QString n2, QString op)
+{
+    double num1 = n1.toDouble();
+    double num2 = n2.toDouble();
+    double result = 0;
+    if(op == "+")
+    {
+        result = num1 + num2;
+    }
+    else if(op == "-")
+    {
+        result = num1 - num2;
+    }
+    else if(op == "×")
+    {
+        result = num1 * num2;
+    }
+    else if(op == "÷")
+    {
+        if(num2 == 0)
+        {
+            //除零错误
+            QMessageBox::warning(this,"错误","除数不能为0");
+            return 0;
+        }
+        result = num1 / num2;
+    }
+    return result;
+}
+
+//等于号槽函数
+void MainWindow::onEqualClicked()
+{
+    if(m_firstNum.isEmpty() || m_op.isEmpty())
+        return;
+    double res = calculate(m_firstNum, m_inputStr, m_op);
+    m_inputStr = QString::number(res);
+    //运算结束，清空运算符和第一个操作数
+    m_firstNum = "";
+    m_op = "";
+    m_calcFinished = true;
+    updateDisplay();
+}
