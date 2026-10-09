@@ -216,3 +216,27 @@ void MainWindow::onDigitClicked()
     }
     updateDisplay();
 }
+//运算符按钮共用槽函数
+void MainWindow::onOpClicked()
+{
+    QPushButton *btn = qobject_cast<QPushButton*>(sender());
+    QString op = btn->text();
+
+    if(m_firstNum.isEmpty())
+    {
+        //第一次按运算符，保存当前输入作为第一个数
+        m_firstNum = m_inputStr;
+        m_op = op;
+        m_calcFinished = true;
+    }
+    else
+    {
+        //已经有运算符，先计算上一步结果，再保存新运算符
+        double res = calculate(m_firstNum, m_inputStr, m_op);
+        m_inputStr = QString::number(res);
+        m_firstNum = m_inputStr;
+        m_op = op;
+        m_calcFinished = true;
+    }
+    updateDisplay();
+}
