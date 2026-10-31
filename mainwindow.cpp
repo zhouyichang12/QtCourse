@@ -36,6 +36,24 @@ ui(new Ui::MainWindow)
     ui->actionCut->setEnabled(false);
     ui->actionCopy->setEnabled(false);
     ui->actionPaste->setEnabled(!QApplication::clipboard()->text().isEmpty());
+    connect(ui->plainTextEdit, &QPlainTextEdit::modificationChanged, this, [=](bool changed){
+            m_isModified = changed;
+            QString title = this->windowTitle();
+            if(changed)
+            {
+                if(!title.endsWith(" *"))
+                {
+                    setWindowTitle(title + " *");
+                }
+            }
+            else
+            {
+                if(title.endsWith(" *"))
+                {
+                    setWindowTitle(title.left(title.length()-2));
+                }
+            }
+        });
 }
 
 
@@ -46,29 +64,45 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,"打开文件","", "文本文件(*.txt);;所有文件(*.*)");
+    QString fileName = QFileDialog::getOpenFileName(this, "打开文件", "", "文本文件(*.txt);;所有文件(*.*)");
     if(fileName.isEmpty()) return;
+
     QFile file(fileName);
-    if(!file.open(QIODevice::ReadOnly)) return;
-    QTextStream in(&file);
-    ui->plainTextEdit->setPlainText(in.readAll());
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        QMessageBox::warning(this,"错误","打开失败");
+        return;
+    }
+    ui->plainTextEdit->setPlainText(file.readAll());
     file.close();
-    this->setWindowTitle(fileName + " - 文本编辑器");
+
+    m_curFilePath = fileName;   // ✅ 记住这个文件
+    m_isModified = false;
+    this->setWindowTitle("文本编辑器 - " + QFileInfo(fileName).fileName());
 }
+
 
 void MainWindow::on_actionSave_triggered()
 {
-    QString fileName = QFileDialog::getSaveFileName(this,"保存文件","untitled.txt","文本文件(*.txt)");
-    if(fileName.isEmpty()) return;
-    QFile file(fileName);
-    if(!file.open(QIODevice::WriteOnly)) return;
-    QTextStream out(&file);
-    out << ui->plainTextEdit->toPlainText();
+    // 如果还没有当前文件路径 → 走另存为
+    if(m_curFilePath.isEmpty())
+    {
+        on_actionSaveAs_triggered();
+        return;
+    }
+    QFile file(m_curFilePath);
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        QMessageBox::warning(this,"错误","保存失败");
+        return;
+    }
+    file.write(ui->plainTextEdit->toPlainText().toUtf8());
     file.close();
-    this->setWindowTitle(fileName + " - 文本编辑器");
-    // 开启菜单显示图标
-    this->setWindowIcon(QIcon(":/icons/new.png"));
-    QApplication::setAttribute(Qt::AA_DontShowIconsInMenus, false);
+    m_isModified = false;
+    this->setWindowTitle("文本编辑器 - " + QFileInfo(m_curFilePath).fileName());
+    QMessageBox::information(this,"提示","保存成功");
+    ui->plainTextEdit->document()->setModified(false);
+
 }
 
 //撤销
@@ -250,25 +284,24 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionSaveAs_triggered()
 {
-    QString fileName = QFileDialog::getSaveFileName(this,
-    "另存为",
-    "untitled.txt",
-    "文本文件 (*.txt);;所有文件 (*.*)");
-    if(fileName.isEmpty())
-        return; // 用户点了取消，直接返回
+    QString fileName = QFileDialog::getSaveFileName(this, "另存为", "", "文本文件(*.txt);;所有文件(*.*)");
+    if(fileName.isEmpty()) return;
+
     QFile file(fileName);
-    if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    if(!file.open(QIODevice::WriteOnly))
     {
-        QMessageBox::warning(this, "错误", "文件打开失败！");
+        QMessageBox::warning(this,"错误","保存失败");
         return;
     }
-    QTextStream out(&file);
-    out << ui->plainTextEdit->toPlainText();
+    file.write(ui->plainTextEdit->toPlainText().toUtf8());
     file.close();
-    // 更新当前文件名和窗口标题
-    curFileName = fileName;
-    this->setWindowTitle(fileName + " - 文本编辑器");
+
+    m_curFilePath = fileName;
+    m_isModified = false;
+    this->setWindowTitle("文本编辑器 - " + QFileInfo(fileName).fileName());
+    QMessageBox::information(this,"提示","另存为成功");
 }
+
 
 void MainWindow::on_actionFont_triggered()
 {
@@ -337,4 +370,32 @@ void MainWindow::on_plainTextEdit_textChanged()
 void MainWindow::on_actionSelectAll_triggered()
 {
     ui->plainTextEdit->selectAll();
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if(ui->plainTextEdit->document()->isModified())
+    {
+        QMessageBox::StandardButton res = QMessageBox::question(this,
+            "提示", "文件已经修改，是否保存修改？",
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+
+        if(res == QMessageBox::Save)
+        {
+            on_actionSave_triggered();
+            event->accept();
+        }
+        else if(res == QMessageBox::Discard)
+        {
+            event->accept();
+        }
+        else
+        {
+            event->ignore();
+        }
+    }
+    else
+    {
+        event->accept();
+    }
 }

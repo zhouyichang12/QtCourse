@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 #include <QMainWindow>
 
+
+
 namespace Ui {
 class MainWindow;
 }
@@ -18,7 +20,6 @@ private slots:
 
     void on_plainTextEdit_textChanged();
 
-
     void on_actionOpen_triggered();
 
     void on_actionSave_triggered();
@@ -26,7 +27,6 @@ private slots:
     void on_actionUndo_triggered();
 
     void on_actionRedo_triggered();
-
 
     void on_actionCut_triggered();
 
@@ -43,7 +43,7 @@ private slots:
 
     void on_actionReplace_triggered();
 
-
+   void closeEvent(QCloseEvent *event) override;
 
     void on_actionSaveAs_triggered();
 
@@ -67,7 +67,11 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QString curFileName;
+    QString m_curFilePath;  // 记录当前打开的文件路径
+    bool m_isModified = false; // 文本是否被修改
+
 
 };
+
 
 #endif // MAINWINDOW_H
