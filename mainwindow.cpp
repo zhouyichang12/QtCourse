@@ -19,6 +19,7 @@
 #include <QPalette>
 #include <QClipboard>
 
+
 MainWindow::MainWindow(QWidget *parent) :
 QMainWindow(parent),
 ui(new Ui::MainWindow)
